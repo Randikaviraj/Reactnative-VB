@@ -3,7 +3,7 @@ import {Dimensions,View,StyleSheet,Text,TextInput,TouchableOpacity} from 'react-
 import Animated,{Easing, Extrapolate} from 'react-native-reanimated';
 import {TapGestureHandler,State} from 'react-native-gesture-handler';
 import Svg,{Image,Circle,ClipPath} from 'react-native-svg'
-
+import { AntDesign } from '@expo/vector-icons'; 
 
 const {width,height}=Dimensions.get('window');
 const {Value,event,block,eq,cond,set,Clock,startClock,stopClock,debug,timing,clockRunning,interpolate,concat }=Animated;
@@ -126,7 +126,7 @@ export default class Main extends Component{
                         <Circle r={height+50} cx={width/2}/>
                     </ClipPath>
                     <Image
-                    href={require('../assets/images/mainbackground.jpeg')}
+                    href={require('../assets/images/Entering_q.jpg')}
                     height={height+50} width={width}
                     preserveAspectRatio='xMidYMid  slice'
                     clipPath='url(#id)'
@@ -135,8 +135,9 @@ export default class Main extends Component{
                 </Animated.View>
                 <View style={{height:height / 8,}}>
                     <TapGestureHandler onHandlerStateChange={this.handleStateChange}>
-                    <Animated.View style={{...styles.button,backgroundColor:'#f7e6ff',opacity:this.btnopacity,transform:[{translateY:this.btny}],height:50,}}>
-                        <Text style={{fontSize:20,fontWeight:'bold'}}>OooPs</Text>
+                    <Animated.View style={{...styles.button,backgroundColor:'rgba(255,255,255,0.4)',opacity:this.btnopacity,transform:[{translateY:this.btny}],height:50,}}>
+                       <AntDesign name="upcircle" size={40} color="black" />
+                        {/* <Text style={{fontSize:20,fontWeight:'bold'}}>OooPs</Text> */}
                     </Animated.View>
                     </TapGestureHandler>
                    

@@ -1,38 +1,41 @@
 import React,{Component} from 'react';
-import { Image, View ,TouchableOpacity,Alert,ActivityIndicator} from 'react-native';
+import { Image, View ,TouchableOpacity,Alert,ActivityIndicator,ImageBackground} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Constants from 'expo-constants';
 import * as Permissions from 'expo-permissions';
-
+import * as FileSystem from 'expo-file-system';
 
 export default class ImageUpload extends Component {
 
   constructor(props){
     super(props)
     this.state = {
-      image: null,
-      isloading:false,
       response:{status:false,network:false},
-      responseStatus:false
+      responseStatus:false,
+      uri:this.props.profileuri
     };
-    this.image=null
+    
+    
   }
+
 
   componentDidMount() {
     this.getPermissionAsync();
-  }
-  componentDidUpdate(){
+    this.getCacheprofile(this.props.email)
     
+  }
+
+
+  componentDidUpdate(){
+  
   if(this.state.responseStatus){
-         console.log(' 1...'+this.state.response.status)  
-         console.log(' 2...'+this.state.response.network)  
+       
         if(!this.state.response.status && !this.state.response.network){
             Alert.alert('Something wrong','Check your network connection',[{text: 'OK',}])
             
             this.setState({
               image: null,
               data:null,
-              isloading:false,
               response:{status:false,network:false},
               responseStatus:false})
               return
@@ -42,15 +45,14 @@ export default class ImageUpload extends Component {
             this.setState({
               image: null,
               data:null,
-              isloading:false,
               response:{status:false,network:false},
               responseStatus:false})
               return
         }
         
         if(this.state.response.status){
-            
-          this.setState({ image: this.image,isloading:false,response:{status:false,network:false},
+          
+          this.setState({response:{status:false,network:false},
             responseStatus:false});
                 
         }
@@ -60,64 +62,68 @@ export default class ImageUpload extends Component {
 
 
 
-  getUpload=async (uri)=>{
-    
-    console.log(uri)
-    console.log(this.props.email)
-   
-    let fileType = uri.substring(uri.lastIndexOf(".") + 1);
+getUpload=async (uri)=>{
+     
+        let fileType = uri.substring(uri.lastIndexOf(".") + 1);
 
-    let formData = new FormData();
-  
-    formData.append("photo", {
-      uri,
-      name: `${this.props.email}.${fileType}`,
-      type: `image/${fileType}`
-    });
-  
-    let options = {
-      method: "POST",
-      body: formData,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "multipart/form-data"
-      }
-    };
-    
-    fetch('http://192.168.42.127:3330/user/uploadimage',options
-    ).then((res)=>res.json()).then(
-       (response)=>{
-           
-           this.setState({response:response,responseStatus:true})
-           
-       }
-   ).catch((e)=>{
-       console.log("Error in uploadin error..............."+e)
-       this.setState({response:{status:false,network:false},responseStatus:true})
-   })
+        let formData = new FormData();
+
+        formData.append("photo", {
+          uri,
+          name: `${this.props.email}.${fileType}`,
+          type: `image/${fileType}`
+        });
+
+        let options = {
+          method: "POST",
+          body: formData,
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "multipart/form-data"
+          }
+        };
+
+        fetch('http://192.248.43.4:8080/user/savefilename',{
+          method:'POST',
+          body: JSON.stringify({ 
+              email:this.props.email,
+              filename:`${this.props.email}.${fileType}`
+          
+          }), 
+          
+          headers: { 
+              "Content-type": "application/json; charset=UTF-8",
+              "Accept": "application/json",} 
+            
+            }).then((respond)=>{
+
+              if(respond.status){
+                      fetch('http://192.248.43.4:8080/user/uploadimage',options
+                      ).then((res)=>res.json()).then(
+                        (response)=>{
+                            this.props.updateProfileUri(uri)
+                            this.setState({response:response,responseStatus:true,uri:uri})
+                            
+                        }
+                    ).catch((e)=>{
+                        console.log("Error in uploadin error..............."+e)
+                        this.setState({response:{status:false,network:false},responseStatus:true})
+                    })
+              }
+                  
+      }).catch((error)=>{
+            this.setState({response:{status:false,network:false},responseStatus:true})
+      })
+
+}
 
 
-
-  }
 
 
         
  
 render(){
-    let { image } = this.state;
-
-      if(this.state.isloading){
-            
-          return(
-                  <View style={styles.main}>
-                      
-                      <ActivityIndicator style={{alignSelf:'center'}}/>
-                      
-                  </View>
-              )
-      }
-      else{
-
+  
         return (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <TouchableOpacity onPress={this._pickImage} style={{width:200,
@@ -128,18 +134,22 @@ render(){
             backgroundColor:'grey',
             borderWidth:4
             }}>
-            
-            <Image source={image!=null? { uri: `data:image/jpeg;base64,${image}` } : require('../assets/images/pp.jpg')} style={{           
+              <ImageBackground source={require('../assets/images/pp.jpg')}
+               style={{ width:200,
+                height:200,
+                borderRadius:120,
+                overflow:'hidden',
+                alignSelf:'center'}}>
+              <Image source={{uri:this.state.uri}} style={{           
                 width:200,
                 height:200,
                 borderRadius:120,
                 overflow:'hidden',
-                alignSelf:'center' }} />
+                alignSelf:'center' }}/>
+              </ImageBackground>
             </TouchableOpacity>
           </View>
         );
-
-      }
   }
     
   
@@ -166,11 +176,69 @@ render(){
     
 
     if (!result.cancelled) {
-      this.image=result.base64
       this.getUpload(result.uri)
-     
     }
     
   };
 
+
+
+  getCacheprofile=async (data)=>{
+ 
+    try{
+         
+    
+          fetch('http://192.248.43.4:8080/user/getfilename',{
+            method:'POST',
+            body: JSON.stringify({ 
+                email:data,
+            }), 
+            headers: { 
+                "Content-type": "application/json; charset=UTF-8",
+                "Accept": "application/json",} 
+              }
+            ).then((res)=>res.json()).then(
+              (res)=>{
+                
+                console.log('filename'+res.filename)
+                var cacheuri='no uri'
+                var today = new Date();
+                var date = today.getFullYear()+'z'+(today.getMonth()+1)+'z'+today.getDate();
+                var time = today.getHours()+'z'+today.getMinutes()+'z'+today.getSeconds();
+                
+                FileSystem.downloadAsync(
+                  `http://192.248.43.4:8080/profilepic/${res.filename}`,
+                  FileSystem.cacheDirectory + `profile${date}${time}${res.filename}`
+                )
+                  .then(({ uri }) => {
+                    
+                    console.log('Finished downloading to ', uri);
+                    this.props.updateProfileUri(uri)
+                    this.setState({uri:uri})
+                  })
+                  .catch(error => {
+                    console.error(error);
+                  });
+                  
+                  
+            
+            }
+          ).catch((e)=>{
+              console.log(e)
+              
+        })
+      
+              
+         
+           
+    
+    }catch(e){
+        
+        console.log("Error in saga functons  ..............."+e)
+        return ''
+    }
 }
+
+}
+
+

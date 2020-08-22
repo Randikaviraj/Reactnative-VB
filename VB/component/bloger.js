@@ -1,9 +1,10 @@
 import React,{Component} from 'react';
-import  {View,Dimensions,FlatList,ScrollView,ActivityIndicator,Alert,TouchableOpacity} from 'react-native';
+import  {View,Dimensions,FlatList,ActivityIndicator,Alert,TouchableOpacity} from 'react-native';
 import {connect} from 'react-redux';
 import SmallBlock from './smallblock'
 import {Foundation } from '@expo/vector-icons';
-
+import { colorCode } from "../assets/colorcode";
+import { Searchbar ,Text} from "react-native-paper";
 
 const {height,width}=Dimensions.get('window')
 
@@ -16,18 +17,40 @@ class Blogger extends Component{
         }
 
         this.loadedfaild=false
-     
+    }
+    state = {
+        searchQuery: "",
+        noResult:false,
+      };
 
+
+    path = 'https://www.googleapis.com/blogger/v3/blogs/6072990315574228729/posts/?maxResults=200&key=AIzaSyArAzxYYs9fmVWVTCdR3bD3l5-U0MYiljw'
+    _onChangeSearch = query => {
+      this.setState({ searchQuery: query })
+      
+      if(query==''){
+        this.getBlogData(true)
+        console.log('close',query)
+      }
+  
     }
 
 
-
-
-    getBlogData=async ()=>{
+    getBlogData=async (forceUsed=false)=>{
         this.loadedfaild=false
+
+        if((this.state.searchQuery=='' || this.state.searchQuery==null)|| forceUsed==true){
+            console.log(forceUsed)
+            this.path = "https://www.googleapis.com/blogger/v3/blogs/6072990315574228729/posts/?maxResults=200&key=AIzaSyArAzxYYs9fmVWVTCdR3bD3l5-U0MYiljw"
+       
+          }else{
+            console.log(this.state.searchQuery)
+            this.path = 'https://www.googleapis.com/blogger/v3/blogs/6072990315574228729/posts/search/?q='+ this.state.searchQuery+'&key=AIzaSyArAzxYYs9fmVWVTCdR3bD3l5-U0MYiljw'
+          
+        }
      
         try{
-                 fetch('https://www.googleapis.com/blogger/v3/blogs/6072990315574228729/posts/?key=AIzaSyArAzxYYs9fmVWVTCdR3bD3l5-U0MYiljw',{
+                 fetch(this.path,{
                     method:'GET',
                     headers: { 
                         "Content-type": "application/json; charset=UTF-8",
@@ -65,11 +88,27 @@ class Blogger extends Component{
      
             }
     }
+
+
+    NoResult(){
+        if(this.props.datablog.items==[])
+          this.setState({noResult:true})
+          else{
+            this.setState({noResult:false})
+          }
+        if(this.state.noResult){
+          return (
+            <Text>No Result</Text>
+          )
+        }else{
+          return(null)
+        }
+      }
     
 
 
     render(){
-
+        const { searchQuery } = this.state;
         if(this.loadedfaild){
             
             return(
@@ -100,9 +139,21 @@ class Blogger extends Component{
     
             return(
                         <View style={{flex:1,}}>
-                                <View style={{marginLeft:'auto',marginRight:'auto',width:'100%',}}>
-                                    
-                                    <View style={{backgroundColor:'white',width:width,marginTop:5}}>
+                                <View style={{marginLeft:'auto',marginRight:'auto',width:'100%',    paddingTop: 3,backgroundColor:'#999999'}}>
+                                        <Searchbar
+                                            style={{paddingVertical:5,marginHorizontal:20}}
+                                            placeholder="Search"
+                                            onChangeText={this._onChangeSearch}
+                                            value={searchQuery}
+                                            onSubmitEditing={this.getBlogData}
+                                            onIconPress={this.getBlogData}
+                                            
+                                            />
+                                            {this.props.datablog.items!=null
+                                            ?null
+                                            : <Text style={{fontSize:30,marginHorizontal:10,marginTop:5,alignSelf:"center"}}>No Result</Text>
+                                            }
+                                    <View style={{backgroundColor:'#999999',width:width,marginTop:5,   marginBottom:115}}>
                                        
                                         <FlatList
                                             data={this.props.datablog.items}

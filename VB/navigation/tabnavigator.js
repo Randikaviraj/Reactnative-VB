@@ -1,53 +1,57 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import  {View,Text,} from 'react-native';
 import Article from '../component/articles'
 import Radio from '../component/radio'
 import Profile from '../component/profile'
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
+import {colorCode} from '../assets/colorcode'
+import { TabBar } from "react-native-animated-nav-tab-bar";
 
 
 const Tab = createBottomTabNavigator();
 
-
+const Tabs = createBottomTabNavigator();
 export default function App() {
     return (
       <NavigationContainer>
-        <Tab.Navigator
+        <Tabs.Navigator
           screenOptions={({ route }) => ({
             tabBarIcon: ({ focused, color, size }) => {
               let colors;
   
               if (route.name === 'Home') {
-                 colors = focused ? 'red' : 'white';
-                return (<View style={{backgroundColor:colors,borderRadius:5,padding:2}}><Ionicons name='ios-home' size={size} color={color} /></View>
+                colors = focused ? 'colorCode[1]' : colorCode[2];
+                return (<Ionicons name='ios-home' size={size} color={color} />
                     );
               } else if (route.name === 'Radio') {
-                colors = focused ? 'red' : 'white';
-                return (<View style={{backgroundColor:colors,borderRadius:5,padding:2}}><Ionicons name='md-radio' size={size} color={color} /></View>
+                // colors = focused ? 'red' : 'white';
+                return (<Ionicons name='md-radio' size={size} color={color} />
                     );
               }else if (route.name === 'Profile') {
-                colors = focused ? 'red' : 'white';
-                return (<View style={{backgroundColor:colors,borderRadius:5,padding:2,paddingHorizontal:3,}}><FontAwesome5 name='user' size={size} color={color} /></View>);
+                // colors = focused ? 'red' : 'white';
+                return (<FontAwesome5 name='user' size={size} color={color} />);
               }
-  
-              
               
             },
           })}
-          tabBarOptions={{
-            activeTintColor: '#ff0000',
-            inactiveTintColor: '#e67300',
-          }}
+
+ 
+          tabBar={props => (
+            <TabBar
+              activeColors={[colorCode(0), colorCode(1), colorCode(3)]} // or activeColors={'#e6b580'}
+              activeTabBackgrounds={[colorCode[1], colorCode[1], colorCode[1]]} // or activeTabBackgrounds={'#ede7e6'}
+              tabBarBackground	= {colorCode(4)}
+              {...props}
+            />)}
         >
           
-          <Tab.Screen name="Home" component={Article} />
-          <Tab.Screen name="Radio" component={Radio} />
-          <Tab.Screen name="Profile" component={Profile} />
+          <Tabs.Screen name="Home" component={Article} />
+          <Tabs.Screen name="Radio" component={Radio} />
+          <Tabs.Screen name="Profile" component={Profile} />
 
-        </Tab.Navigator>
+        </Tabs.Navigator>
       </NavigationContainer>
     );
   }

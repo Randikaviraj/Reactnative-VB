@@ -6,12 +6,14 @@ import {connect} from 'react-redux'
 
 class Sidebar extends Component{
 
+    
+
 render(){
     return(
         <ScrollView>
             <ImageBackground source={require('../assets/images/SidebarBackground.jpg')}
             style={{width:undefined,padding:16,paddingTop:48}}>
-                <Image source={require('../assets/images/face.jpg')} style={styles.face}/>
+                <Image source={{uri:this.props.profileuri}} style={styles.face}/>
                 <Text style={styles.name}>{this.props.fname} {this.props.lname}</Text>
                 
             </ImageBackground>
@@ -21,13 +23,18 @@ render(){
         </ScrollView>
     )
 }
+
+
+
 }
+
 
 const mapStateToProps=(state)=>{
     return{
         fname:state.rA.fname,
         lname:state.rA.lname,
-        email:state.rA.email
+        email:state.rA.email,
+        profileuri:state.rA.profileuri
     }
 }
 

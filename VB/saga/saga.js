@@ -1,13 +1,14 @@
-import {takeLatest,put,call,} from 'redux-saga/effects'
-import {saveSignUpServer} from './sagafunctions'
-
-function* signUpAsync(action){
+import {takeLatest,put,call,delay} from 'redux-saga/effects'
+//import {getcacheProfile} from './sagafunctions'
+import * as FileSystem from 'expo-file-system';
+function* cacheProfile(action){
     try{
-        const data=yield call(saveSignUpServer,action.data)
-        yield put({type:'AfterSignUp',data:data})
+        var uridata=yield call(getcafile,action.data)
+        yield  delay(4000)
+        yield put({type:'updateProfileUri',data:uridata})
         console.log(data)
     }catch(e){
-        console.log("Error in saga signUpAsync.............."+e)
+        console.log("Error in saga cacheProfile.............."+e)
     }
 }
 
@@ -15,6 +16,8 @@ function* signUpAsync(action){
 
 export default function* watchSaga(){
     
-    yield takeLatest('Carry',signUpAsync)
+    yield takeLatest('Cacheprofile',cacheProfile)
    
 }
+
+

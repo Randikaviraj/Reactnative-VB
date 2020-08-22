@@ -1,6 +1,6 @@
 import React from 'react';
 import ValidationComponent from 'react-native-form-validator';
-import {StyleSheet,TextInput,View,StatusBar,Dimensions,TouchableOpacity,Text,Image,TouchableWithoutFeedback,Keyboard,ActivityIndicator,Alert} from 'react-native';
+import {StyleSheet,TextInput,View,StatusBar,Dimensions,TouchableOpacity,Text,Image,TouchableWithoutFeedback,Keyboard,ActivityIndicator,Alert,Modal} from 'react-native';
 import {KeyboardAwareScrollView,} from 'react-native-keyboard-aware-scroll-view'
 
 
@@ -21,7 +21,11 @@ export default class SignUp extends ValidationComponent{
             repassword:'',
             isloading:false,
             response:{statussignup:false,network:false},
-            responseStatus:false
+            responseconfirm:{statusrenew:false,network:false},
+            responseStatus:false,
+            comcode:'',
+            gencode:'',
+            confirmmodal:false
             
         }
         this.errmsg=''
@@ -71,7 +75,7 @@ export default class SignUp extends ValidationComponent{
           });
 
         if(!this.getErrorMessages()){
-            this.getSignUp(this.state)
+            this.getConfirm(this.state)
             this.setState({
                 isloading:true,
                 response:{statussignup:false,network:false},
@@ -88,10 +92,35 @@ export default class SignUp extends ValidationComponent{
     componentDidUpdate(){
 
         if(this.state.responseStatus){
-            console.log(this.state.response.statussignup)
-            console.log(this.state.response.network)
+            
+                if(this.state.responseconfirm.statusrenew){
+                    this.setState({confirmmodal:true,isloading:false,responseStatus:false,})
+                    
+                    return
+
+                }
+                if(!this.state.responseconfirm.network){
+                    Alert.alert('Error',' Check your network connection',[{text: 'OK',}])
+                    this.setState({
+                        fname:'',
+                        lname:'',
+                        email:'',
+                        password:'',
+                        repassword:'',
+                        isloading:false,
+                        response:{statussignup:false,network:false},
+                        responseconfirm:{statusrenew:false,network:false},
+                        responseStatus:false,
+                        comcode:'',
+                        gencode:'',
+                        confirmmodal:false})
+                    return
+
+                }
+            
+               
                 if(!this.state.response.statussignup && !this.state.response.network){
-                    Alert.alert('Something wrong','Couldn\'t sign up check your network connection',[{text: 'OK',}])
+                    Alert.alert('Something wrong','Couldn\'t sign up check your network connection,try again later',[{text: 'OK',}])
                     this.errmsg=''
                     this.repassworderr=''
                     this.setState({
@@ -102,7 +131,11 @@ export default class SignUp extends ValidationComponent{
                         repassword:'',
                         isloading:false,
                         response:{statussignup:false,network:false},
-                        responseStatus:false})
+                        responseconfirm:{statusrenew:false,network:false},
+                        responseStatus:false,
+                        comcode:'',
+                        gencode:'',
+                        confirmmodal:false})
                         return
                 }
                 if(!this.state.response.statussignup && this.state.response.network){
@@ -117,7 +150,11 @@ export default class SignUp extends ValidationComponent{
                         repassword:'',
                         isloading:false,
                         response:{statussignup:false,network:false},
-                        responseStatus:false
+                        responseconfirm:{statusrenew:false,network:false},
+                        responseStatus:false,
+                        comcode:'',
+                        gencode:'',
+                        confirmmodal:false
                     })
                     return
                 }
@@ -134,7 +171,11 @@ export default class SignUp extends ValidationComponent{
                         repassword:'',
                         isloading:false,
                         response:{statussignup:false,network:false},
-                        responseStatus:false})
+                        responseconfirm:{statusrenew:false,network:false},
+                        responseStatus:false,
+                        comcode:'',
+                        gencode:'',
+                        confirmmodal:false})
                         this.props.navigation.navigate('Login')
                         return
                         
@@ -152,7 +193,7 @@ export default class SignUp extends ValidationComponent{
 getSignUp=async (data)=>{
         
     
-             fetch('http://192.168.42.127:3330/user/signup',{
+             fetch('http://192.248.43.4:8080/user/signup',{
                 method:'POST',
                 body: JSON.stringify({ 
                     fname:data.fname,
@@ -185,6 +226,67 @@ getSignUp=async (data)=>{
 
 
 
+
+getConfirm=async (data)=>{
+
+    let num=((Math.round(Math.random() * 10)+5)*100+(Math.round(Math.random() * 10)*2+7)*100)*12547
+    this.setState({gencode:num.toString()})
+    try{
+             fetch('http://192.248.43.4:8080/user/confirmemail',{
+                method:'POST',
+                body: JSON.stringify({ 
+                    email:data.email,
+                    num:num
+                }), 
+                
+                headers: { 
+                    "Content-type": "application/json; charset=UTF-8",
+                    "Accept": "application/json",
+                    
+                
+                } 
+            }).then((res)=>res.json()).then(
+                (response)=>{
+                    
+                    this.setState({responseconfirm:response,responseStatus:true})
+                    
+                }
+            ).catch((e)=>{
+                this.setState({responseconfirm:{statusrenew:false,network:false},responseStatus:true})
+                
+            })
+        
+    }catch(e){
+        console.log("Error in login in loginpage..............."+e)
+        this.setState({responseconfirm:{statusrenew:false,network:false},responseStatus:true})
+        return
+        
+    }
+    }
+
+
+
+    handleConfirm=()=>{
+        
+        if(this.state.gencode!==this.state.comcode){
+            Alert.alert('Ooops','Confirmion code in not valid',[{text: 'OK',}])
+            this.setState({
+                responseStatus:false,comcode:''})
+            return
+        }
+    
+        this.getSignUp(this.state)
+        this.setState({
+        isloading:true,
+        response:{statussignup:false,network:false},
+        responseStatus:false,
+        responseconfirm:{statusrenew:false,network:true}
+    })
+        
+    }
+
+
+
  render(){
     if(this.state.isloading){
         
@@ -192,7 +294,7 @@ getSignUp=async (data)=>{
                 <View style={styles.main}>
                     <View style={{...StyleSheet.absoluteFill,}} >
                     <Image
-                        source={require('../assets/images/mainbackground.jpeg')}
+                        source={require('../assets/images/mainbackground.jpg')}
                         style={{height:null,width:null,flex:1}}/>
                     </View>
                     <ActivityIndicator style={{alignSelf:'center'}}/>
@@ -208,7 +310,7 @@ getSignUp=async (data)=>{
                                 <StatusBar barStyle='light-content' backgroundColor='black'/>
                                 <View style={{...StyleSheet.absoluteFill,}} >
                                 <Image
-                                        source={require('../assets/images/mainbackground.jpeg')}
+                                        source={require('../assets/images/mainbackground.jpg')}
                                         style={{height:null,width:null,flex:1}}/>
                                 </View>
                                 <View  style={styles.container}>
@@ -220,7 +322,7 @@ getSignUp=async (data)=>{
                                     } 
 
                                     <View style={{paddingTop:10}}>
-                                    {this.isFieldInError('fname') && this.getErrorsInField('fname').map(errorMessage => <Text style={{ color:'#ff0000',
+                                    {this.isFieldInError('fname') && this.getErrorsInField('fname').map(errorMessage => <Text style={{ color:'black',
                                         fontSize:12,marginTop:5,alignSelf:'center'}}>{errorMessage}</Text>) } 
                                     </View>
 
@@ -230,7 +332,7 @@ getSignUp=async (data)=>{
                                         placeholder="Frist Name" placeholderTextColor="#ffffff" />
 
                                     <View >
-                                    {this.isFieldInError('lname') && this.getErrorsInField('lname').map(errorMessage => <Text style={{ color:'#ff0000',
+                                    {this.isFieldInError('lname') && this.getErrorsInField('lname').map(errorMessage => <Text style={{ color:'black',
                                         fontSize:12,marginTop:5,alignSelf:'center'}}>{errorMessage}</Text>) } 
                                     </View>
 
@@ -241,7 +343,7 @@ getSignUp=async (data)=>{
                                         placeholder="Last Name" placeholderTextColor="#ffffff"/>
                                 
                                     <View >
-                                    {this.isFieldInError('email') && this.getErrorsInField('email').map(errorMessage => <Text style={{ color:'#ff0000',
+                                    {this.isFieldInError('email') && this.getErrorsInField('email').map(errorMessage => <Text style={{ color:'black',
                                         fontSize:12,marginTop:5,alignSelf:'center'}}>{errorMessage}</Text>) } 
                                     </View>
 
@@ -254,7 +356,7 @@ getSignUp=async (data)=>{
                                         keyboardType='email-address'/>
                                     
                                     <View >
-                                    {this.isFieldInError('password') && this.getErrorsInField('password').map(errorMessage => <Text style={{ color:'#ff0000',
+                                    {this.isFieldInError('password') && this.getErrorsInField('password').map(errorMessage => <Text style={{ color:'black',
                                         fontSize:12,marginTop:5,alignSelf:'center'}}>{errorMessage}</Text>) } 
                                     </View>
 
@@ -265,7 +367,7 @@ getSignUp=async (data)=>{
                                         placeholder="Password" placeholderTextColor="#ffffff"/>
                                     
                                     <View >
-                                    {!(!this.repassworderr) &&  <Text style={{ color:'#ff0000',
+                                    {!(!this.repassworderr) &&  <Text style={{ color:'black',
                                         fontSize:12,marginTop:5,alignSelf:'center'}}>{this.repassworderr}</Text> } 
                                     </View>
                                     <TextInput style={styles.inputbox} 
@@ -288,6 +390,51 @@ getSignUp=async (data)=>{
                                 </View>
                             
                             </View>
+                            <Modal
+                                animationType="slide"
+                                visible={this.state.confirmmodal}
+                              
+                            >
+                                <View style={styles.main}>
+                                    <View style={{...StyleSheet.absoluteFill,}} >
+                                        <Image
+                                            source={require('../assets/images/mainbackground.jpg')}
+                                            style={{height:null,width:null,flex:1}}/>
+                                    </View>
+                                    <View  style={styles.container}>
+                                            <Text style={styles.buttontext} >Send a code to your email</Text>
+                                            <TextInput style={styles.inputbox} 
+                                            keyboardType='number-pad'
+                                            underlineColorAndroid='rgba(0,0,0,0)'
+                                            autoCapitalize='none'
+                                            placeholder="Confirmation Code" placeholderTextColor="#ffffff"
+                                            onChangeText={(val)=>{this.setState({comcode:val})}}/>
+                                            
+                                            <View style={{paddingTop:60}}>
+                                                <TouchableOpacity style={styles.button} onPress={this.handleConfirm}>
+                                                    <Text style={styles.buttontext} >Confirm</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity style={{...styles.button,marginVertical:2}} 
+                                                onPress={()=>this.setState({
+                                                    fname:'',
+                                                    lname:'',
+                                                    email:'',
+                                                    password:'',
+                                                    repassword:'',
+                                                    isloading:false,
+                                                    response:{statussignup:false,network:false},
+                                                    responseconfirm:{statusrenew:false,network:false},
+                                                    responseStatus:false,
+                                                    comcode:'',
+                                                    gencode:'',
+                                                    confirmmodal:false
+                                                })}>
+                                                    <Text style={styles.buttontext} >Cancel</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                    </View>
+                                </View>
+                            </Modal>
                         </KeyboardAwareScrollView>
                 </TouchableWithoutFeedback>
                 );
@@ -339,7 +486,7 @@ const styles=StyleSheet.create({
         width:300,
         justifyContent:'center',
         alignItems:'center',
-        backgroundColor:'#000080',
+        backgroundColor:'#660000',
         marginVertical:30,
         paddingVertical:8,
         paddingBottom:13

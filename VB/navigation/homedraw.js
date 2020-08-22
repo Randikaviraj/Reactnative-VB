@@ -7,6 +7,7 @@ import Header from '../screens/header'
 
 
 
+
 const about={
     About:{
         screen:About,
@@ -26,7 +27,8 @@ const article={
                 headerTitle:()=><Header navigation={navigation}/>}
             )
         }
-    }
+    },
+    
 }
 
 const blogger={

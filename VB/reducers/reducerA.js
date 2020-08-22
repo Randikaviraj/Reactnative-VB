@@ -5,12 +5,20 @@ const initialState={
     password:'',
     isloaded:'',
     errormsg:'',
-    blogdata:{}
+    blogdata:{},
+    magazineCovers:{},
+    magazineCatagory:{},
+    magazineArticles:{},
+    profileuri:null,
+
 }
 
 const reducer=(state=initialState,action)=>{
     var newState={...state}
-    
+    if(action.type==='ProfilcachUri'){
+        
+        newState.profileuri=action.data
+    }
     if(action.type==='SaveStore'){
         
         newState.fname=action.data.fname
@@ -30,6 +38,19 @@ const reducer=(state=initialState,action)=>{
         
         newState.blogdata=action.data
     }
+    if(action.type==='MagazineCoverssave'){
+        
+        newState.magazineCovers=action.data
+    }
+    if(action.type==='ContentMagzineSave'){
+        
+        newState.magazineCatagory=action.data
+    }
+    if(action.type==='ArticleMagzineSave'){
+        
+        newState.magazineArticles=action.data
+    }
+    
 
     return newState
     

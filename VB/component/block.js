@@ -1,17 +1,36 @@
 import React from 'react';
-import  {View,} from 'react-native';
-import {  Card, Title, Paragraph } from 'react-native-paper';
+import  {View,TouchableOpacity} from 'react-native';
+import {  Card, Title,} from 'react-native-paper';
+import { black } from 'color-name';
 
 export default function Block(props){
+    
+    var uri = null;
+    function takeURI(){
+        try{
+            var image = props.content;
+            var patt =  /(http[^\s]+(jpg|jpeg|png|tiff)\b)/;
+            var result = patt.exec(image);
+            
+            
+            if(result[1]){
+                uri=result[1]
+            }
+        }catch(e){
+            console.log('uri error in block'+e)
+        }
+     
+    }
+
+    takeURI();
+
     return(
-        <View style={{flex:1,paddingHorizontal:10,marginHorizontal:11,marginVertical:10,height:props.height,
-        width:props.width-15}}>
+        <View style={{flex:1,marginHorizontal:1,marginVertical:1,
+        width:props.width-15,height:props.height}}>
             <Card style={{flex:1}}>
-            <Card.Cover source={{ uri: 'https://picsum.photos/700' }} />
-            <Card.Content>
-                <Title style={{fontSize:15,fontWeight:'500'}}>Card title</Title>
-                <Paragraph>Card content fffffffffffffffffffffffffffffffffffffffffffffffffffffff</Paragraph>
-            </Card.Content>
+                <TouchableOpacity onPress={()=>props.onNav(props.indexno)}>
+                    <Card.Cover source={{ uri: uri }} style={{ width:props.width-15,height:props.height,borderColor:black,borderWidth:1}} />
+                </TouchableOpacity>
             </Card>
         </View>
     )

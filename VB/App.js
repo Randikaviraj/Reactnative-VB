@@ -7,25 +7,25 @@ import createSagaMiddleware from 'redux-saga'
 
 import Navigation from './navigation/mainstack'
 import reducerA from './reducers/reducerA'
-import watchSaga from './saga/saga'
-import PostInfo from './component/postinfo'
-import Heart from './component/hearts'
-import ForgetPassword from './component/forgetpassword'
+//import watchSaga from './saga/saga'
 
-const sagaMiddleware = createSagaMiddleware()
+
+
+//const sagaMiddleware = createSagaMiddleware()
 
 
 const rootreducer=combineReducers({
   rA:reducerA,
 
 });
-const store=createStore(rootreducer,applyMiddleware(sagaMiddleware));
+const store=createStore(rootreducer);
 
-sagaMiddleware.run(watchSaga)
+// sagaMiddleware.run(watchSaga)
 
 
-const images=[require('./assets/images/mainbackground.jpeg'),
-              require('./assets/images/SidebarBackground.jpg')];
+const images=[require('./assets/images/mainbackground.jpg'),
+              require('./assets/images/SidebarBackground.jpg'),
+              require('./assets/images/Entering_q.jpg')];
 
 export default function App() {
   const [imgloaded,setLoaded]=useState('false');
@@ -42,10 +42,7 @@ export default function App() {
     return (
       <Provider store={store}>
       <View style={styles.container}>
-       <Navigation/>
-       {/* <PostInfo/> */}
-       {/* <Heart/> */}
-      {/* <ForgetPassword/> */}
+       <Navigation/>     
       </View>
       </Provider>
     );

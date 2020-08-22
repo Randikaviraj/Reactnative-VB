@@ -1,7 +1,8 @@
 import React from 'react';
-import {TouchableOpacity, StyleSheet, View,Image,Alert,ActivityIndicator} from 'react-native';
+import {TouchableOpacity, StyleSheet, View,Image,Alert,ActivityIndicator,BackHandler} from 'react-native';
 import { AntDesign ,MaterialCommunityIcons} from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 const soundObject = new Audio.Sound();
 
 export default class App extends React.Component {
@@ -18,7 +19,13 @@ export default class App extends React.Component {
             
         }
         this.volume=0.5
+        this.uri=null
     }
+
+    backAction = () => {
+        
+        return true;
+    };
 
     controlVolumeUp=async()=>{
         if(this.volume+0.1<1 && this.state.playing){
@@ -37,6 +44,7 @@ export default class App extends React.Component {
     }
 
     componentDidMount() {
+        BackHandler.addEventListener("hardwareBackPress", this.backAction);
 		Audio.setAudioModeAsync({
 			allowsRecordingIOS: false,
 			interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
@@ -49,17 +57,19 @@ export default class App extends React.Component {
     startRadio=async()=>{
         try {
             if(this.state.playing){
+                deactivateKeepAwake();
                 await soundObject.stopAsync()
                 soundObject.unloadAsync()
                 this.setState({isloading:false,zpush:0,oppush:0,zplay:1,opplay:1,playing:false,})
                 return
             }
-            
-            await soundObject.loadAsync( { uri: 'https://www.radioking.com/play/bawwa' },{volume: this.volume});
+            activateKeepAwake();
+            await soundObject.loadAsync( { uri: this.uri },{volume: this.volume});
             await soundObject.playAsync();
             this.setState({isloading:false,zpush:1,oppush:1,zplay:0,opplay:0,playing:true,})
         } catch (e) {
             Alert.alert('Something Wrong','Check your network connection',[{text:'Ok'}])
+            this.uri=null
             this.setState({isloading:false,zpush:0,oppush:0,zplay:1,opplay:1,playing:false,})
             console.log(`cannot play the sound file`, e)
         }
@@ -70,16 +80,59 @@ export default class App extends React.Component {
         
     }
 
+    geturl=()=>{
+        fetch('http://192.248.43.4:8080/radio/takeurl',{
+            method:'GET',
+            headers: { 
+                "Content-type": "application/json; charset=UTF-8",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                
+            
+            } 
+        }
+          ).then((res)=>res.json()).then(
+            (response)=>{
+                if(response.status){
+                    if(response.started){
+                        this.uri=response.url
+                        this.startRadio()
+                    }else{
+                        Alert.alert('Hey..',response.msg,[{text:'Ok'}])
+                        this.setState({isloading:false,zpush:0,oppush:0,zplay:1,opplay:1,playing:false,})
+                        return;
+                    }
+                }else{
+                    Alert.alert('Something Wrong','Check your network connection',[{text:'Ok'}])
+                    this.uri=null
+                    this.setState({isloading:false,zpush:0,oppush:0,zplay:1,opplay:1,playing:false,})
+                }
+                
+                
+            }
+        ).catch((err)=>{
+            
+            Alert.alert('Something Wrong','Check your network connection',[{text: 'OK',}])
+            this.uri=null
+            this.setState({isloading:false,zpush:0,oppush:0,zplay:1,opplay:1,playing:false,})
+            }
+        )
+    }
+
     render() {
 
         if(this.state.isloading){
-            this.startRadio()
+            if(!this.uri){
+                this.geturl()
+            }else{
+                this.startRadio()
+            }
+            
          return(  
              
              <View style={styles.container}>
                 <View style={{...StyleSheet.absoluteFill,}} >
                     <Image
-                        source={require('../assets/images/radio.jpg')}
+                        source={require('../assets/images/radio.png')}
                         style={{height:null,width:null,flex:1}}/>
                 </View> 
                 <View style={{flexDirection:'row'}}>
@@ -110,7 +163,7 @@ export default class App extends React.Component {
                 <View style={styles.container}>
                    <View style={{...StyleSheet.absoluteFill,}} >
                         <Image
-                            source={require('../assets/images/radio.jpg')}
+                            source={require('../assets/images/radio.png')}
                             style={{height:null,width:null,flex:1}}/>
                     </View> 
                     <View style={{flexDirection:'row'}}>

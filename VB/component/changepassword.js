@@ -114,7 +114,7 @@ export default class ChangePassword extends ValidationComponent{
 getUpdate=async (data)=>{
         
             
-             fetch('http://192.168.42.127:3330/user/changepassword',{
+             fetch('http://192.248.43.4:8080/user/changepassword',{
                 method:'POST',
                 body: JSON.stringify({ 
                     email:this.props.navigation.getParam('email'),
@@ -162,7 +162,12 @@ getUpdate=async (data)=>{
                         <KeyboardAwareScrollView  extraScrollHeight={15} enableOnAndroid={true} 
                             keyboardShouldPersistTaps='handled' style={{flex:1}}>
                             <View style={styles.main}>
-                               
+                                <View style={{...StyleSheet.absoluteFill,}} >
+                                        <Image
+                                        source={require('../assets/images/mainbackground.jpg')}
+                                        style={{height:null,width:null,flex:1}}/>
+                                </View>
+                                
                                     <TextInput style={styles.inputbox} 
                                         autoCapitalize='none'
                                         onChangeText={(val)=>{this.setState({password:val})}}
@@ -210,11 +215,11 @@ const styles=StyleSheet.create({
    
     inputbox:{
         width:300,
-        backgroundColor:'#ffffcc',
+        backgroundColor:'rgba(255,255,255,0.3)',
         borderRadius:25,
         fontSize:16,
         paddingHorizontal:16,
-        color:'#ffffff',
+        color:'black',
         marginTop:20,
         padding:10
     },
@@ -230,7 +235,7 @@ const styles=StyleSheet.create({
         width:300,
         justifyContent:'center',
         alignItems:'center',
-        backgroundColor:'#ffe6f2',
+        backgroundColor:'rgba(51, 0, 0, 0.7)',
         marginVertical:5,
         paddingVertical:1,
         paddingBottom:10

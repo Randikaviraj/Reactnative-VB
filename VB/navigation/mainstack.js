@@ -20,7 +20,7 @@ const MainStack=createStackNavigator({
         screen:SignUp,
         navigationOptions:{
             headerStyle:{
-                backgroundColor:'#000080',
+                backgroundColor:'#660000',
                 height:80,
                 
             },
@@ -36,7 +36,7 @@ const MainStack=createStackNavigator({
         screen:Login,
         navigationOptions:{
             headerStyle:{
-                backgroundColor:'#000080',
+                backgroundColor:'#660000',
                 height:80,
                 
             },
@@ -57,7 +57,17 @@ const MainStack=createStackNavigator({
     ForgetPass:{
         screen:ForgetPass,
         navigationOptions: {
-            headerShown:false
+            headerStyle:{
+                backgroundColor:'#660000',
+                height:90,
+                
+            },
+            headerTintColor: '#ffffff',
+            title:'FORGET PASSWORD',
+            headerTitleStyle: {
+                fontSize: 20,
+                fontWeight:'bold'
+              },
           }
     },
      

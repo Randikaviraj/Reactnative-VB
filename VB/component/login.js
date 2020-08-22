@@ -1,8 +1,10 @@
 import React from 'react';
 import ValidationComponent from 'react-native-form-validator';
-import {StyleSheet,TextInput,View,StatusBar,Dimensions,Image,TouchableOpacity,Text,TouchableWithoutFeedback,Keyboard,Alert,AsyncStorage,ActivityIndicator,} from 'react-native';
+import {StyleSheet,TextInput,View,StatusBar,Dimensions,Image,TouchableOpacity,Text,TouchableWithoutFeedback,Keyboard,Alert,AsyncStorage,ActivityIndicator,Vibration,Platform } from 'react-native';
 import {KeyboardAwareScrollView,} from 'react-native-keyboard-aware-scroll-view'
-
+import { Notifications } from 'expo';
+import * as Permissions from 'expo-permissions';
+import Constants from 'expo-constants';
 
 var {height,width}=Dimensions.get("window");
 
@@ -21,7 +23,88 @@ export default class Login extends ValidationComponent{
         
     }
 
+
+    sendToken=async(token)=>{
+        try{
+            fetch('http://192.248.43.4:8080/token/savetoken',{
+               method:'POST',
+               body: JSON.stringify({ 
+                   token:token,
+               
+               }), 
+               
+               headers: { 
+                   "Content-type": "application/json; charset=UTF-8",
+                   "Accept": "application/json",
+                   
+               
+               } 
+           }).then((res)=>res.json()).then(
+               (response)=>{
+                   console.log(response)
+                   
+               }
+           ).catch((e)=>{console.log('Error in send token'+e)})
+          
+        }catch(e){
+            console.log("Error in send token..............."+e)
+            return
+            
+        }
+    }
+
    
+
+
+    registerForPushNotificationsAsync = async () => {
+        try{
+            if (Constants.isDevice) {
+            const { status: existingStatus } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+            let finalStatus = existingStatus;
+            if (existingStatus !== 'granted') {
+                const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+                finalStatus = status;
+            }
+            if (finalStatus !== 'granted') {
+                alert('Failed to get push token for push notification!');
+                return;
+            }
+            var token = await Notifications.getExpoPushTokenAsync();
+            //console.log('token is..'+token);
+            this.sendToken(token);
+            } else {
+            alert('Must use physical device for Push Notifications');
+            }
+    
+        if (Platform.OS === 'android') {
+          Notifications.createChannelAndroidAsync('default', {
+            name: 'default',
+            sound: true,
+            priority: 'max',
+            vibrate: [0, 250, 250, 250],
+          });
+        }
+      
+    }catch(e){
+        console.log("Error in token..."+e)
+    }};
+      
+      
+
+
+    _handleNotification = notification => {
+        Vibration.vibrate();
+        //console.log(notification);
+        
+    };
+
+
+
+
+
+
+
+
     
 
     handleSignup=()=>{
@@ -52,7 +135,8 @@ export default class Login extends ValidationComponent{
     }
 
     componentDidMount(){
-        
+        this.registerForPushNotificationsAsync();
+        this._notificationSubscription = Notifications.addListener(this._handleNotification);
         this._loadData()
     }
 
@@ -96,7 +180,7 @@ export default class Login extends ValidationComponent{
 
             }
             if(!this.state.response.statussignin && this.state.response.network){
-                Alert.alert('Couldn\' SignIn','Couldn\'t sign in your entered password or email is wrong',[{text: 'OK',}])
+                Alert.alert('Couldn\'t SignIn','Couldn\'t sign in your entered password or email is wrong',[{text: 'OK',}])
                 this.setState({
                     email:'',
                     password:'',
@@ -118,21 +202,14 @@ export default class Login extends ValidationComponent{
     }
 
     asyncForgetPass=async()=>{
-        const forgetpass=await AsyncStorage.getItem('forgetpass')
-        const email=await AsyncStorage.getItem('email')
-        if(forgetpass==='1'){
-            const num=await AsyncStorage.getItem('num')
-            this.props.navigation.navigate('ForgetPass',{A:1,B:0,num:num,email:email})
-            return
-        }
-        this.props.navigation.navigate('ForgetPass',{A:0,B:1,num:0,email:''})
+        this.props.navigation.navigate('ForgetPass')
     }
 
 
     getSignIn=async (data)=>{
         
         try{
-                 fetch('http://192.168.42.127:3330/user/login',{
+                 fetch('http://192.248.43.4:8080/user/login',{
                     method:'POST',
                     body: JSON.stringify({ 
                         email:data.email,
@@ -152,7 +229,7 @@ export default class Login extends ValidationComponent{
                         this.setState({response:response,responseStatus:true})
                         
                     }
-                ).catch(this.setState({response:{statussignin:false,network:false},responseStatus:true}))
+                ).catch((e)=>{this.setState({response:{statussignin:false,network:false},responseStatus:true})})
             
              
                
@@ -174,7 +251,7 @@ export default class Login extends ValidationComponent{
                         <View style={styles.main}>
                             <View style={{...StyleSheet.absoluteFill,}} >
                             <Image
-                                source={require('../assets/images/mainbackground.jpeg')}
+                                source={require('../assets/images/mainbackground.jpg')}
                                 style={{height:null,width:null,flex:1}}/>
                             </View>
                             <ActivityIndicator style={{alignSelf:'center'}}/>
@@ -191,7 +268,7 @@ export default class Login extends ValidationComponent{
                                         <StatusBar barStyle='light-content' backgroundColor='black'/>
                                         <View style={{...StyleSheet.absoluteFill,}} >
                                         <Image
-                                                source={require('../assets/images/mainbackground.jpeg')}
+                                                source={require('../assets/images/mainbackground.jpg')}
                                                 style={{height:null,width:null,flex:1}}/>
                                         </View>
                                         
@@ -287,7 +364,7 @@ const styles=StyleSheet.create({
         width:300,
         justifyContent:'center',
         alignItems:'center',
-        backgroundColor:'#000080',
+        backgroundColor:'#660000',
         marginVertical:10,
         paddingVertical:8
 

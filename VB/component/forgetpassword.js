@@ -1,6 +1,6 @@
 import React from 'react';
 import ValidationComponent from 'react-native-form-validator';
-import {StyleSheet,TextInput,View,StatusBar,Dimensions,Image,TouchableOpacity,Text,TouchableWithoutFeedback,Keyboard,Alert,AsyncStorage,ActivityIndicator} from 'react-native';
+import {StyleSheet,TextInput,View,StatusBar,Dimensions,Image,TouchableOpacity,Text,TouchableWithoutFeedback,Keyboard,Alert,Modal,ActivityIndicator} from 'react-native';
 import {KeyboardAwareScrollView,} from 'react-native-keyboard-aware-scroll-view'
 
 
@@ -15,19 +15,13 @@ export default class ForgetPass extends ValidationComponent{
             isloading:false,
             response:{status:false,network:false,statusrenew:false},
             responseStatus:false,
-            confirmnum:0,
-            num:this.props.navigation.getParam('num'),
+            confirmnum:'',
+            num:'',
             password:'',
             repassword:'',
+            confirmmodal:false
 
-        }
-        
-        this.opacity1=this.props.navigation.getParam('A')
-        this.zindi1=this.props.navigation.getParam('A')
-        this.opacity2=this.props.navigation.getParam('B')
-        this.zindi2=this.props.navigation.getParam('B')
-        
-        
+        }   
     }
 
     handleBack=()=>{
@@ -66,6 +60,8 @@ export default class ForgetPass extends ValidationComponent{
         }
         if(!this.state.password){
             Alert.alert('Error','Enter your new password here',[{text: 'OK', onPress: () => console.log('OK Pressed in missing email')}])
+            this.setState({
+                responseStatus:false})
             return
         }
         if(this.state.password!==this.state.repassword){
@@ -95,35 +91,29 @@ export default class ForgetPass extends ValidationComponent{
 
     _finishRenew= async()=>{
         
-        await AsyncStorage.setItem('forgetpass','0');
-        await AsyncStorage.setItem('num','0')
-        await AsyncStorage.setItem('email','')
-       
         Alert.alert('Done','Successfully renew your password',[{text: 'OK',}])
-        this.props.navigation.navigate('Login')
         this.setState({
+            email:'',
             isloading:false,
             response:{status:false,network:false,statusrenew:false},
-            responseStatus:false
+            responseStatus:false,
+            confirmnum:'',
+            num:'',
+            password:'',
+            repassword:'',
+            confirmmodal:false
+
         })
-        
+        this.props.navigation.navigate('Login')
     }
     
     
     _logscreen= async()=>{
-        
-        await AsyncStorage.setItem('forgetpass','1');
-        await AsyncStorage.setItem('num',this.state.num.toString())
-        await AsyncStorage.setItem('email',this.state.email)
-        this.opacity1=0
-        this.zindi1=0
-        this.opacity2=1
-        this.zindi2=1
        
         this.setState({
             isloading:false,
             response:{status:false,network:false,statusrenew:false},
-            responseStatus:false
+            responseStatus:false,confirmmodal:true
         })
         
     }
@@ -142,8 +132,13 @@ export default class ForgetPass extends ValidationComponent{
                 Alert.alert('Error',' Check your network connection',[{text: 'OK',}])
                 this.setState({ email:'',
                 isloading:false,
-                response:{statussignin:false,network:false},
-                responseStatus:false})
+                response:{status:false,network:false,statusrenew:false},
+                responseStatus:false,
+                confirmnum:'',
+                num:'',
+                password:'',
+                repassword:'',
+                confirmmodal:false})
                 return
 
             }
@@ -166,7 +161,7 @@ export default class ForgetPass extends ValidationComponent{
         let num=((Math.round(Math.random() * 10)+5)*100+(Math.round(Math.random() * 10)*2+7)*100)*12547
         this.setState({num:num.toString()})
         try{
-                 fetch('http://192.168.42.127:3330/user/forgetemail',{
+                 fetch('http://192.248.43.4:8080/user/forgetemail',{
                     method:'POST',
                     body: JSON.stringify({ 
                         email:data.email,
@@ -181,11 +176,13 @@ export default class ForgetPass extends ValidationComponent{
                     } 
                 }).then((res)=>res.json()).then(
                     (response)=>{
-                        console.log('response***********'+response.status)
+                       
                         this.setState({response:response,responseStatus:true})
                         
                     }
-                ).catch(this.setState({response:{statusrenew:false,network:false},responseStatus:true}))
+                ).catch(
+                    (e)=>
+                {this.setState({response:{statusrenew:false,network:false},responseStatus:true})})
             
         }catch(e){
             console.log("Error in login in loginpage..............."+e)
@@ -197,10 +194,10 @@ export default class ForgetPass extends ValidationComponent{
 
 
 
-        renewPassword=async (data)=>{
+    renewPassword=async (data)=>{
         
             
-            fetch('http://192.168.42.127:3330/user/changepassword',{
+            fetch('http://192.248.43.4:8080/user/changepassword',{
                method:'POST',
                body: JSON.stringify({ 
                    email:data.email,
@@ -240,7 +237,7 @@ export default class ForgetPass extends ValidationComponent{
                         <View style={styles.main}>
                             <View style={{...StyleSheet.absoluteFill,}} >
                             <Image
-                                source={require('../assets/images/mainbackground.jpeg')}
+                                source={require('../assets/images/mainbackground.jpg')}
                                 style={{height:null,width:null,flex:1}}/>
                             </View>
                             <ActivityIndicator style={{alignSelf:'center'}}/>
@@ -257,11 +254,11 @@ export default class ForgetPass extends ValidationComponent{
                                         <StatusBar barStyle='light-content' backgroundColor='black'/>
                                         <View style={{...StyleSheet.absoluteFill,}} >
                                         <Image
-                                                source={require('../assets/images/mainbackground.jpeg')}
+                                                source={require('../assets/images/mainbackground.jpg')}
                                                 style={{height:null,width:null,flex:1}}/>
                                         </View>
                                         
-                                        <View  style={{...styles.container,opacity:this.opacity1,zIndex:this.zindi1,position:'absolute'}}>
+                                        <View  style={styles.container}>
                                                 <Text style={{...styles.buttontext,fontSize:22}} >Enter your email to get </Text>
                                                     <Text style={{...styles.buttontext,fontSize:22}} >
                                                          confirmation code</Text>
@@ -279,44 +276,61 @@ export default class ForgetPass extends ValidationComponent{
                                                         <Text style={styles.buttontext} >Back</Text>
                                                     </TouchableOpacity>
                                                  </View>
-                                        </View>   
-
-
-
-
-                                            <View  style={{...styles.container,opacity:this.opacity2,zIndex:this.zindi2,position:'absolute'}}> 
-                                                
-                                                <TextInput style={styles.inputbox}
-                                                    keyboardType='number-pad' 
-                                                    underlineColorAndroid='rgba(0,0,0,0)'
-                                                    autoCapitalize='none'
-                                                    placeholder="Enter Confirmation Code" placeholderTextColor="#ffffff"
-                                                    onChangeText={(val)=>{this.setState({confirmnum:val})}}/>
-                                                <TextInput style={styles.inputbox} 
-                                                    autoCapitalize='none'
-                                                    underlineColorAndroid='rgba(0,0,0,0)' secureTextEntry={true}
-                                                     placeholder="Enter Your New Password" placeholderTextColor="#ffffff"
-                                                     onChangeText={(val)=>{this.setState({password:val})}}/>
-                                                    
-                                                <TextInput style={styles.inputbox} 
-                                                        autoCapitalize='none'
-                                                        underlineColorAndroid='rgba(0,0,0,0)' secureTextEntry={true}
-                                                        placeholder="Confirm Your Password" placeholderTextColor="#ffffff"
-                                                        onChangeText={(val)=>{this.setState({repassword:val})}}/>
-                                                <View style={{paddingTop:60}}>
-                                                    <TouchableOpacity style={styles.button}onPress={this.handleRenew}>
-                                                    <Text style={styles.buttontext} >RenewPassword</Text>
-                                                    </TouchableOpacity>
-                                                            
+                                            </View>   
+                                        </View>
+                                        <Modal
+                                            animationType="slide"
+                                            visible={this.state.confirmmodal}
+                                            style={styles.container}
+                                        >
+                                                <View style={{...StyleSheet.absoluteFill,}} >
+                                                    <Image
+                                                        source={require('../assets/images/mainbackground.jpg')}
+                                                        style={{height:null,width:null,flex:1}}/>
                                                 </View>
-                                            </View>
-
-
-
-                                        
-                                    
-                                            
-                                </View>
+                                                     <TouchableWithoutFeedback onPress={()=>Keyboard.dismiss()} >
+                                                        <View  style={styles.container}> 
+                                                            <TextInput style={styles.inputbox}
+                                                                keyboardType='number-pad' 
+                                                                underlineColorAndroid='rgba(0,0,0,0)'
+                                                                autoCapitalize='none'
+                                                                placeholder="Enter Confirmation Code" placeholderTextColor="#ffffff"
+                                                                onChangeText={(val)=>{this.setState({confirmnum:val})}}/>
+                                                            <TextInput style={styles.inputbox} 
+                                                                autoCapitalize='none'
+                                                                underlineColorAndroid='rgba(0,0,0,0)' secureTextEntry={true}
+                                                                placeholder="Enter Your New Password" placeholderTextColor="#ffffff"
+                                                                onChangeText={(val)=>{this.setState({password:val})}}/>
+                                                                
+                                                            <TextInput style={styles.inputbox} 
+                                                                    autoCapitalize='none'
+                                                                    underlineColorAndroid='rgba(0,0,0,0)' secureTextEntry={true}
+                                                                    placeholder="Confirm Your Password" placeholderTextColor="#ffffff"
+                                                                    onChangeText={(val)=>{this.setState({repassword:val})}}/>
+                                                            <View style={{paddingTop:60}}>
+                                                                <TouchableOpacity style={styles.button}onPress={this.handleRenew}>
+                                                                <Text style={styles.buttontext} >RenewPassword</Text>
+                                                                </TouchableOpacity>
+                                                                    <TouchableOpacity style={styles.button} onPress={()=>{
+                                                                        this.setState({
+                                                                            email:'',
+                                                                            isloading:false,
+                                                                            response:{status:false,network:false,statusrenew:false},
+                                                                            responseStatus:false,
+                                                                            confirmnum:'',
+                                                                            num:'',
+                                                                            password:'',
+                                                                            repassword:'',
+                                                                            confirmmodal:false
+                                                                        })
+                                                                }}>
+                                                                <Text style={styles.buttontext} >Cancel</Text>
+                                                                </TouchableOpacity>
+                                                                        
+                                                            </View>
+                                                     </View>
+                                                   </TouchableWithoutFeedback>
+                                            </Modal>   
                             </KeyboardAwareScrollView>
                         </TouchableWithoutFeedback>
                     );
@@ -343,10 +357,10 @@ const styles=StyleSheet.create({
         padding:10
     },
     container:{
-        height:height/2,
+        height:height,
         justifyContent:'center',
         alignItems:'center',
-        marginTop:500
+        marginTop:5
     },
 
     inputbox:{
@@ -374,7 +388,7 @@ const styles=StyleSheet.create({
         width:300,
         justifyContent:'center',
         alignItems:'center',
-        backgroundColor:'#000080',
+        backgroundColor:'#660000',
         marginVertical:10,
         paddingVertical:5
 

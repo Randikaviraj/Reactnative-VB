@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Blank Template",
+    "name": "Vibhawa",
     "slug": "VB",
     "privacy": "public",
     "sdkVersion": "36.0.0",
@@ -24,7 +24,12 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vapp.vibawa",
+      "buildNumber": "1.0.0"
+    },
+    "android": {
+      "package": "com.a30solutions.vivi"
     }
   }
 }
